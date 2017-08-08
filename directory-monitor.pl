@@ -43,10 +43,10 @@ sub getopts {
         "sendmail=s" => \$self->{sendmail},
     );
 
-    warn "No recipient specified, no email alerts will be sent\n" unless $self->{to};
-    die "No directory specified\n" unless $self->{directory} && -d $self->{directory};
-    die sprintf "inotifywait not found at %s\n", $self->{inotifywait} unless $self->{inotifywait} && -x $self->{inotifywait};
-    die sprintf "sendmail not found at %s\n", $self->{sendmail} unless $self->{sendmail} && -x $self->{sendmail};
+    warn $self->stamp("No recipient specified, no email alerts will be sent\n") unless $self->{to};
+    die $self->stamp("No directory specified\n") unless $self->{directory} && -d $self->{directory};
+    die $self->stamp("inotifywait not found at %s\n", $self->{inotifywait}) unless $self->{inotifywait} && -x $self->{inotifywait};
+    die $self->stamp("sendmail not found at %s\n", $self->{sendmail}) unless $self->{sendmail} && -x $self->{sendmail};
 }
 
 sub stamp {
