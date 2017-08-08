@@ -23,6 +23,7 @@ sub new {
         'to' => undef,
         'directory' => undef,
         'inotifywait' => '/usr/bin/inotifywait',
+        'exclude' => [],
         'sendmail' => '/usr/sbin/sendmail',
         'collected' => '',
         'partial' => ''
@@ -35,14 +36,14 @@ sub getopts {
     GetOptions(
         "t|to=s" => \$self->{to},
         "d|directory=s" => \$self->{directory},
+        "e|exclude=s@" => \$self->{exclude},
         "i|interval=i"  => \$self->{interval},
         "s|subject=s" => \$self->{subject},
         "inotifywait=s" => \$self->{inotifywait},
         "sendmail=s" => \$self->{sendmail},
     );
 
-#    warn 
-    die "No recipient specified\n" unless $self->{to};
+    warn "No recipient specified, no email alerts will be sent\n" unless $self->{to};
     die "No directory specified\n" unless $self->{directory} && -d $self->{directory};
     die sprintf "inotifywait not found at %s\n", $self->{inotifywait} unless $self->{inotifywait} && -x $self->{inotifywait};
     die sprintf "sendmail not found at %s\n", $self->{sendmail} unless $self->{sendmail} && -x $self->{sendmail};
@@ -79,15 +80,26 @@ sub flush {
         $self->{partial} = '' ;
     }
 
-#    open my $mail, sprintf("| %s -t", $self->{sendmail}) or die $!;
-#    printf $mail "To: %s\n", $self->{to};
-#    printf $mail "Subject: %s\n\n", $self->{subject};
-#    printf $mail $err if $err;
-#    printf $mail $out if $out;
-#    close $mail;
-
     warn $err if $err;
     print $out if $out;
+
+    if ($self->{to}) {
+        open my $mail, sprintf("| %s -t", $self->{sendmail}) or die $!;
+        printf $mail "To: %s\n", $self->{to};
+        printf $mail "Subject: %s\n\n", $self->{subject};
+        printf $mail $err if $err;
+        printf $mail $out if $out;
+        close $mail;
+    }
+}
+
+sub filter {
+    my $self = shift;
+    my @filtered;
+    foreach my $line (@_) {
+        push @filtered, $line unless grep { $line =~ qr($_) } @{ $self->{exclude} };
+    }
+    return @filtered;
 }
 
 sub start {
@@ -108,7 +120,8 @@ sub start {
 
     (my $directory = $self->{directory}) =~ s/\"/\\\"/g;
 
-    open my $in, sprintf('%s -q -m -r -e modify -e create -e moved_to -e close_write --format "%%:e %%w%%f" "%s" |', $self->{inotifywait}, $directory) or die $!;
+    my $cmd = sprintf '%s -q -m -r -e modify -e create -e moved_to -e close_write --format "%%:e %%w%%f" %s "%s" |', $self->{inotifywait}, $directory;
+    open my $in, $cmd or die $!;
 
     my $s= IO::Select->new();
     $s->add(\*$in);
@@ -123,6 +136,7 @@ sub start {
             if ($rc > 0) {
                 my @lines = split /\n/, $self->{partial} . $data;
                 $self->{partial} = $data =~ /\n$/ ? '' : pop @lines;
+                @lines = $self->filter(@lines);
                 $self->{collected} .= join "\n", map ($self->stamp($_), @lines), "" if @lines;
                 #warn $self->{collected} . ":" . $self->{partial};
                 $last_received_time = time();
