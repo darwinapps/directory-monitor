@@ -120,7 +120,7 @@ sub start {
 
     (my $directory = $self->{directory}) =~ s/\"/\\\"/g;
 
-    my $cmd = sprintf '%s -q -m -r -e modify -e create -e moved_to -e close_write --format "%%:e %%w%%f" %s "%s" |', $self->{inotifywait}, $directory;
+    my $cmd = sprintf '%s -q -m -r -e modify -e create -e moved_to -e close_write --format "%%:e %%w%%f" "%s" |', $self->{inotifywait}, $directory;
     open my $in, $cmd or die $!;
 
     my $s= IO::Select->new();
