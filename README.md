@@ -16,25 +16,29 @@ $ ./directory-monitor.pl -d /var/www/html
 Command-line Options:
 
 ```
-    -d|--directory             required, directory to monitor
+        -d|--directory             required, directory to monitor
 
-    -e|--exclude <pattern>     optional, exclude all events on files matching the
-                               perl-compatible regular expression <pattern>
-                               multiple excludes allowed
+        -e|--exclude <pattern>     optional, exclude all events on files
+                                   matching the perl-compatible regular.
+                                   expression <pattern>, multiple excludes
+                                   allowed
 
-    -i|--interval <interval>   optional, interval, after which all events are reported
-                               in a batch useful when notifications are sent by email,
-                               default value is 60
+        -i|--interval <interval>   optional, interval, after which all events
+                                   are reported in a batch useful when.
+                                   notifications are sent by email,
+                                   default value is 60
 
-    -t|--to <email>            optional, email address to send notifications
+        -t|--to <email>            optional, email address to send
+                                   notifications
 
-    -s|--subject <subject>     optional, subject of the email, default value is
-                               sprintf('Filesystem modified at %s', $hostname)
+        -s|--subject <subject>     optional, subject of the email, default value
+                                   is 'Filesystem modified at ' . hostname
 
-    --inotifywatch <path>      path to binary inotifywatch,
-                               if different from /usr/bin/inotifywatch
+        --inotifywatch <path>      optional, path to binary inotifywatch,
+                                   if different from /usr/bin/inotifywatch
 
-    --sendmail <path>          path to binary sendmail,
-                               if different from /usr/sbin/sendmail
+        --sendmail <path>          optional, path to binary sendmail,
+                                   if different from /usr/sbin/sendmail
+
 
 ```
